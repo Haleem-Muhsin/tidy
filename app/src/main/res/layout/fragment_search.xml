@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".fragments.SearchFragment"
     android:background="@color/black">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:scrollbars="vertical"
         app:layoutManager="GridLayoutManager"
-        android:layout_margin="10dp"
         app:spanCount="3" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginLeft="40dp"
-        android:layout_marginRight="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_gravity="bottom"
         android:gravity="center"
         android:padding="16dp"
-        android:background="#6666" >
+        android:elevation="8dp"
+        android:windowSoftInputMode="adjustResize"
+        android:background="@drawable/rounded_background">
 
         <EditText
             android:id="@+id/searchText"
@@ -36,7 +34,8 @@
             android:layout_height="wrap_content"
             android:hint="Search something"
             android:inputType="textWebEditText|text"
-            android:textColorHint="@color/white"/>
+            android:textColorHint="#666666"
+            android:imeOptions="actionSearch"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -65,4 +64,4 @@
 
     </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>
