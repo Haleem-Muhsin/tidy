@@ -20,6 +20,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="20dp"
         android:gravity="center"
         android:padding="16dp">
 
@@ -27,7 +31,7 @@
             android:id="@+id/searchText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="e.g. &quot;Black cat sitting on a table&quot;"
+            android:hint="Search something"
             android:inputType="textWebEditText|text" />
 
         <LinearLayout
