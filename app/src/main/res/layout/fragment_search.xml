@@ -5,14 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".fragments.SearchFragment"
-    >
+    tools:context=".fragments.SearchFragment">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"
+        app:layoutManager="GridLayoutManager"
+        app:spanCount="3" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:padding="16dp">
 
         <EditText
             android:id="@+id/searchText"
@@ -36,8 +45,7 @@
 
             <Space
                 android:layout_width="10dp"
-                android:layout_height="wrap_content"
-                 />
+                android:layout_height="wrap_content" />
 
             <Button
                 android:id="@+id/clearButton"
@@ -47,16 +55,6 @@
                 android:text="Clear" />
         </LinearLayout>
 
-
     </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        app:layoutManager="GridLayoutManager"
-        app:spanCount="3" />
-
 
 </LinearLayout>

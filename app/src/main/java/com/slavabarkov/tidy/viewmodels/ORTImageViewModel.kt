@@ -57,53 +57,58 @@ class ORTImageViewModel(application: Application) : AndroidViewModel(application
             val totalImages = cursor?.count ?: 0
             cursor?.use {
                 val idColumn: Int = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-                val dateColumn: Int =
-                    it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED)
-                val bucketColumn: Int =
-                    it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                val dateColumn: Int = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED)
+                val bucketColumn: Int = it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+
                 while (it.moveToNext()) {
                     val id: Long = it.getLong(idColumn)
                     val date: Long = it.getLong(dateColumn)
-                    val bucket: String = it.getString(bucketColumn)
-                    // Don't add screenshots to image index
-                    if (bucket == "Screenshots") continue
+                    // Safely get bucket name, defaulting to empty string if null
+                    val bucket: String = if (it.isNull(bucketColumn)) "" else it.getString(bucketColumn) ?: ""
+
+                    // Skip screenshots folder if bucket name matches
+                    if (bucket.equals("Screenshots", ignoreCase = true)) continue
+
                     val record = repository.getRecord(id) as ImageEmbedding?
                     if (record != null) {
                         idxList.add(record.id)
                         embeddingsList.add(record.embedding)
                     } else {
                         val imageUri: Uri = Uri.withAppendedPath(uri, id.toString())
-                        val inputStream = contentResolver.openInputStream(imageUri)
-                        val bytes = inputStream?.readBytes()
-                        inputStream?.close()
+                        try {
+                            contentResolver.openInputStream(imageUri)?.use { inputStream ->
+                                val bytes = inputStream.readBytes()
 
-                        // Can fail to create the image decoder if its not implemented for the image type
-                        val bitmap: Bitmap? =
-                            BitmapFactory.decodeByteArray(bytes, 0, bytes?.size ?: 0)
-                        bitmap?.let {
-                            val rawBitmap = centerCrop(bitmap, 224)
-                            val inputShape = longArrayOf(1, 3, 224, 224)
-                            val inputName = "pixel_values"
-                            val imgData = preProcess(rawBitmap)
-                            val inputTensor = OnnxTensor.createTensor(ortEnv, imgData, inputShape)
+                                // Can fail to create the image decoder if its not implemented for the image type
+                                val bitmap: Bitmap? = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                                bitmap?.let {
+                                    val rawBitmap = centerCrop(bitmap, 224)
+                                    val inputShape = longArrayOf(1, 3, 224, 224)
+                                    val inputName = "pixel_values"
+                                    val imgData = preProcess(rawBitmap)
 
-                            inputTensor.use {
-                                val output =
-                                    session?.run(Collections.singletonMap(inputName, inputTensor))
-                                output.use {
-                                    @Suppress("UNCHECKED_CAST") var rawOutput =
-                                        ((output?.get(0)?.value) as Array<FloatArray>)[0]
-                                    rawOutput = normalizeL2(rawOutput)
-                                    repository.addImageEmbedding(
-                                        ImageEmbedding(
-                                            id, date, rawOutput
-                                        )
-                                    )
-                                    idxList.add(id)
-                                    embeddingsList.add(rawOutput)
-
+                                    OnnxTensor.createTensor(ortEnv, imgData, inputShape).use { inputTensor ->
+                                        val output = session?.run(Collections.singletonMap(inputName, inputTensor))
+                                        output?.use {
+                                            @Suppress("UNCHECKED_CAST")
+                                            var rawOutput = ((output[0]?.value) as Array<FloatArray>)[0]
+                                            rawOutput = normalizeL2(rawOutput)
+                                            repository.addImageEmbedding(
+                                                ImageEmbedding(
+                                                    id, date, rawOutput
+                                                )
+                                            )
+                                            idxList.add(id)
+                                            embeddingsList.add(rawOutput)
+                                        }
+                                    }
                                 }
+                                bitmap?.recycle()
                             }
+                        } catch (e: Exception) {
+                            // Log error or handle exception as needed
+                            e.printStackTrace()
+                            continue
                         }
                     }
                     // Record created/loaded, update progress
@@ -112,10 +117,8 @@ class ORTImageViewModel(application: Application) : AndroidViewModel(application
             }
             cursor?.close()
             session.close()
-            progress.setValue(1.0)
+            progress.value = 1.0
         }
     }
 }
-
-
 
